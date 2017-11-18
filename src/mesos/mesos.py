@@ -583,7 +583,7 @@ class TaskIO(object):
     HEARTBEAT_INTERVAL = 30
     HEARTBEAT_INTERVAL_NANOSECONDS = HEARTBEAT_INTERVAL * 1000000000
 
-    def __init__(self, task_id, cmd=None, args=None,
+    def __init__(self, mesos_master_url, task_id, cmd=None, args=None,
                  interactive=False, tty=False):
         # Store relevant parameters of the call for later.
         self.cmd = cmd
@@ -591,8 +591,7 @@ class TaskIO(object):
         self.tty = tty
         self.args = args
 
-        self._mesos_master_url = 'http://mesos-par.central.criteo.preprod:5050'
-        self._mesos_slave_url = 'http://mesos-slave024-par.central.criteo.preprod:5051'
+        self._mesos_master_url = mesos_master_url
         master = Master(get_master_state(self._mesos_master_url))
 
         # Get the task and make sure its container was launched by the UCR.
@@ -610,17 +609,8 @@ class TaskIO(object):
                         " launched by the Universal Container Runtime (UCR).")
 
         # Get the URL to the agent running the task.
-        self.agent_url = self._mesos_slave_url + '/api/v1'
-        # if self._mesos_master_url:
-        #     self.agent_url = client.slave_url(
-        #         slave_id="",
-        #         private_url=task_obj.slave().http_url(),
-        #         path="api/v1")
-        # else:
-        #     self.agent_url = client.slave_url(
-        #         slave_id=task_obj.slave()['id'],
-        #         private_url="",
-        #         path="api/v1")
+        self.agent_url = urllib.parse.urljoin(task_obj.slave().http_url(), 
+            'api/v1')
 
         # Grab a reference to the container ID for the task.
         self.parent_id = master.get_container_id(task_id)
