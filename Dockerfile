@@ -4,8 +4,8 @@ WORKDIR /app
 
 ADD requirements.yml requirements.yml
 RUN pip install -r requirements.yml
+ADD scripts/entrypoint.sh /entrypoint.sh
 
 ADD src src
 
-
-CMD ["python", "src/app.py"]
+ENTRYPOINT ["/entrypoint.sh"]
