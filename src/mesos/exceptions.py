@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Credits for this code goes to https://github.com/dcos/dcos-cli. Please
+# note, it might have been slightly edited.
+
 """
 Exception Classes
 """
