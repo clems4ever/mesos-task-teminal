@@ -25,10 +25,10 @@ from requests.auth import AuthBase
 from six.moves.urllib.parse import urlparse
 
 from mesos import util
-from dcos.errors import (MesosAuthenticationException,
-                         MesosAuthorizationException, DCOSBadRequest,
-                         MesosConnectionError, MesosException, MesosHTTPException,
-                         MesosUnprocessableException)
+from mesos.errors import (MesosAuthenticationException,
+                          MesosAuthorizationException, MesosBadRequest,
+                          MesosConnectionError, MesosException,
+                          MesosHTTPException, MesosUnprocessableException)
 
 
 logger = util.get_logger(__name__)
@@ -103,8 +103,7 @@ def _request(method,
             **kwargs)
     except requests.exceptions.SSLError as e:
         logger.exception("HTTP SSL Error")
-        msg = ("An SSL error occurred. To configure your SSL settings, "
-               "please run: `dcos config set core.ssl_verify <value>`")
+        msg = ("An SSL error occurred.")
         if description is not None:
             msg += "\n<value>: {}".format(description)
         raise MesosException(msg)
@@ -162,32 +161,13 @@ def request(method,
     if is_success(response.status_code):
         return response
     elif response.status_code == 401:
-        if prompt_login:
-            # I don't like having imports that aren't at the top level, but
-            # this is to resolve a circular import issue between dcos.http and
-            # dcos.auth
-            from dcos.auth import header_challenge_auth
-
-            header_challenge_auth(dcos_url.geturl())
-            # if header_challenge_auth succeeded, then we auth-ed correctly and
-            # thus can safely recursively call ourselves and not have to worry
-            # about an infinite loop
-            return request(method=method, url=url,
-                           is_success=is_success, timeout=timeout,
-                           verify=verify, **kwargs)
-        else:
-            if auth_token is not None:
-                msg = ("Your core.dcos_acs_token is invalid. "
-                       "Please run: `dcos auth login`")
-                raise MesosAuthenticationException(response, msg)
-            else:
-                raise MesosAuthenticationException(response)
+        raise MesosAuthenticationException(response)
     elif response.status_code == 422:
         raise MesosUnprocessableException(response)
     elif response.status_code == 403:
         raise MesosAuthorizationException(response)
     elif response.status_code == 400:
-        raise DCOSBadRequest(response)
+        raise MesosBadRequest(response)
     else:
         raise MesosHTTPException(response)
 
@@ -285,15 +265,6 @@ def delete(url, **kwargs):
 
 
 def silence_requests_warnings():
-    """Silence warnings from requests.packages.urllib3.  See DCOS-1007."""
+    """Silence warnings from requests.packages.urllib3."""
     requests.packages.urllib3.disable_warnings()
 
-
-class DCOSAcsAuth(AuthBase):
-    """Invokes DCOS Authentication flow for given Request object."""
-    def __init__(self, token):
-        self.token = token
-
-    def __call__(self, r):
-        r.headers['Authorization'] = "token={}".format(self.token)
-        return r

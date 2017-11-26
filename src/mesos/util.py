@@ -39,7 +39,7 @@ import six
 from six.moves import urllib
 
 from mesos import constants
-from dcos.errors import MesosException
+from mesos.errors import MesosException
 
 
 def get_logger(name):
@@ -328,16 +328,6 @@ def which(program):
     return None
 
 
-def dcos_bin_path():
-    """Returns the real DCOS path based on the current executable
-
-    :returns: the real path to the DCOS path
-    :rtype: str
-    """
-
-    return os.path.dirname(os.path.realpath(sys.argv[0]))
-
-
 def configure_process_from_environ():
     """Configure the program's logger and debug messages using the environment
     variable
@@ -345,8 +335,8 @@ def configure_process_from_environ():
     :rtype: None
     """
 
-    configure_logger(os.environ.get(constants.DCOS_LOG_LEVEL_ENV))
-    configure_debug(os.environ.get(constants.DCOS_DEBUG_ENV))
+    configure_logger(os.environ.get(constants.MESOS_LOG_LEVEL_ENV))
+    configure_debug(os.environ.get(constants.MESOS_DEBUG_ENV))
 
 
 def configure_debug(is_debug):

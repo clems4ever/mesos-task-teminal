@@ -33,7 +33,7 @@ import urllib.parse
 from functools import partial
 from queue import Queue
 
-from dcos.errors import MesosException
+from mesos.errors import MesosException
 from mesos import http
 from mesos import recordio
 from mesos import util
@@ -341,10 +341,6 @@ class Slave(object):
         :returns: This slave's state.json object
         :rtype: dict
         """
-
-        if not self._state:
-            self._state = DCOSClient().get_slave_state(self['id'],
-                                                       self.http_url())
         return self._state
 
     def http_url(self):
