@@ -25,10 +25,10 @@ from requests.auth import AuthBase
 from six.moves.urllib.parse import urlparse
 
 from mesos import util
-from dcos.errors import (DCOSAuthenticationException,
-                         DCOSAuthorizationException, DCOSBadRequest,
-                         DCOSConnectionError, DCOSException, DCOSHTTPException,
-                         DCOSUnprocessableException)
+from dcos.errors import (MesosAuthenticationException,
+                         MesosAuthorizationException, DCOSBadRequest,
+                         MesosConnectionError, MesosException, MesosHTTPException,
+                         MesosUnprocessableException)
 
 
 logger = util.get_logger(__name__)
@@ -107,16 +107,16 @@ def _request(method,
                "please run: `dcos config set core.ssl_verify <value>`")
         if description is not None:
             msg += "\n<value>: {}".format(description)
-        raise DCOSException(msg)
+        raise MesosException(msg)
     except requests.exceptions.ConnectionError as e:
         logger.exception("HTTP Connection Error")
-        raise DCOSConnectionError(url)
+        raise MesosConnectionError(url)
     except requests.exceptions.Timeout as e:
         logger.exception("HTTP Timeout")
-        raise DCOSException('Request to URL [{0}] timed out.'.format(url))
+        raise MesosException('Request to URL [{0}] timed out.'.format(url))
     except requests.exceptions.RequestException as e:
         logger.exception("HTTP Exception")
-        raise DCOSException('HTTP Exception: {}'.format(e))
+        raise MesosException('HTTP Exception: {}'.format(e))
 
     logger.info('Received HTTP response [%r]: %r',
                 response.status_code,
@@ -179,17 +179,17 @@ def request(method,
             if auth_token is not None:
                 msg = ("Your core.dcos_acs_token is invalid. "
                        "Please run: `dcos auth login`")
-                raise DCOSAuthenticationException(response, msg)
+                raise MesosAuthenticationException(response, msg)
             else:
-                raise DCOSAuthenticationException(response)
+                raise MesosAuthenticationException(response)
     elif response.status_code == 422:
-        raise DCOSUnprocessableException(response)
+        raise MesosUnprocessableException(response)
     elif response.status_code == 403:
-        raise DCOSAuthorizationException(response)
+        raise MesosAuthorizationException(response)
     elif response.status_code == 400:
         raise DCOSBadRequest(response)
     else:
-        raise DCOSHTTPException(response)
+        raise MesosHTTPException(response)
 
 
 def head(url, **kwargs):

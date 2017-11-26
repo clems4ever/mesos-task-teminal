@@ -39,7 +39,7 @@ import six
 from six.moves import urllib
 
 from mesos import constants
-from dcos.errors import DCOSException
+from dcos.errors import MesosException
 
 
 def get_logger(name):
@@ -173,14 +173,14 @@ def sh_copy(src, dst):
         logger.exception('Unable to copy [%s] to [%s]', src, dst)
         if e.strerror:
             if e.filename:
-                raise DCOSException("{}: {}".format(e.strerror, e.filename))
+                raise MesosException("{}: {}".format(e.strerror, e.filename))
             else:
-                raise DCOSException(e.strerror)
+                raise MesosException(e.strerror)
         else:
-            raise DCOSException(e)
+            raise MesosException(e)
     except Exception as e:
         logger.exception('Unknown error while coping [%s] to [%s]', src, dst)
-        raise DCOSException(e)
+        raise MesosException(e)
 
 
 def sh_move(src, dst):
@@ -198,14 +198,14 @@ def sh_move(src, dst):
         logger.exception('Unable to move [%s] to [%s]', src, dst)
         if e.strerror:
             if e.filename:
-                raise DCOSException("{}: {}".format(e.strerror, e.filename))
+                raise MesosException("{}: {}".format(e.strerror, e.filename))
             else:
-                raise DCOSException(e.strerror)
+                raise MesosException(e.strerror)
         else:
-            raise DCOSException(e)
+            raise MesosException(e)
     except Exception as e:
         logger.exception('Unknown error while moving [%s] to [%s]', src, dst)
-        raise DCOSException(e)
+        raise MesosException(e)
 
 
 def ensure_dir_exists(directory):
@@ -222,7 +222,7 @@ def ensure_dir_exists(directory):
         try:
             os.makedirs(directory, 0o775)
         except os.error as e:
-            raise DCOSException(
+            raise MesosException(
                 'Cannot create directory [{}]: {}'.format(directory, e))
 
 
@@ -239,7 +239,7 @@ def ensure_file_exists(path):
             open(path, 'w').close()
             os.chmod(path, 0o600)
         except IOError as e:
-            raise DCOSException(
+            raise MesosException(
                 'Cannot create file [{}]: {}'.format(path, e))
 
 
@@ -251,7 +251,7 @@ def read_file(path):
     :rtype: str
     """
     if not os.path.isfile(path):
-        raise DCOSException('path [{}] is not a file'.format(path))
+        raise MesosException('path [{}] is not a file'.format(path))
 
     with open_file(path) as file_:
         return file_.read()
@@ -266,7 +266,7 @@ def enforce_file_permissions(path):
     """
 
     if not os.path.isfile(path):
-        raise DCOSException('Path [{}] is not a file'.format(path))
+        raise MesosException('Path [{}] is not a file'.format(path))
 
     # Unix permissions are incompatible with windows
     # TODO: https://github.com/dcos/dcos-cli/issues/662
@@ -281,7 +281,7 @@ def enforce_file_permissions(path):
                 "Permissions '{}' for configuration file '{}' are too open. "
                 "File must only be accessible by owner. "
                 "Aborting...".format(permissions, path))
-            raise DCOSException(msg)
+            raise MesosException(msg)
 
 
 def read_file_secure(path):
@@ -385,7 +385,7 @@ def configure_logger(log_level):
         return None
 
     msg = 'Log level set to an unknown value {!r}. Valid values are {!r}'
-    raise DCOSException(
+    raise MesosException(
         msg.format(log_level, constants.VALID_LOG_LEVEL_VALUES))
 
 
@@ -410,7 +410,7 @@ def load_json(reader, keep_order=False):
             'Unhandled exception while loading JSON: %r',
             error)
 
-        raise DCOSException('Error loading JSON: {}'.format(error))
+        raise MesosException('Error loading JSON: {}'.format(error))
 
 
 def load_jsons(value):
@@ -429,7 +429,7 @@ def load_jsons(value):
             'Unhandled exception while loading JSON: %r',
             value)
 
-        raise DCOSException('Error loading JSON.')
+        raise MesosException('Error loading JSON.')
 
 
 def validate_json(instance, schema):
@@ -573,7 +573,7 @@ def parse_int(string):
             'Unhandled exception while parsing string as int: %r',
             string)
 
-        raise DCOSException('Error parsing string as int')
+        raise MesosException('Error parsing string as int')
 
 
 def parse_float(string):
@@ -592,7 +592,7 @@ def parse_float(string):
             'Unhandled exception while parsing string as float: %r',
             string)
 
-        raise DCOSException('Error parsing string as float')
+        raise MesosException('Error parsing string as float')
 
 
 def is_windows_platform():
@@ -652,7 +652,7 @@ def humanize_bytes(b):
 
 @contextlib.contextmanager
 def open_file(path,  *args):
-    """Context manager that opens a file, and raises a DCOSException if
+    """Context manager that opens a file, and raises a MesosException if
     it fails.
 
     :param path: file path
@@ -675,18 +675,18 @@ def open_file(path,  *args):
 
 
 def io_exception(path, errno):
-    """Returns a DCOSException for when there is an error opening the
+    """Returns a MesosException for when there is an error opening the
     file at `path`
 
     :param path: file path
     :type path: str
     :param errno: IO error number
     :type errno: int
-    :returns: DCOSException
-    :rtype: DCOSException
+    :returns: MesosException
+    :rtype: MesosException
     """
 
-    return DCOSException('Error opening file [{}]: {}'.format(
+    return MesosException('Error opening file [{}]: {}'.format(
         path, os.strerror(errno)))
 
 

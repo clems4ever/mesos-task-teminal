@@ -33,7 +33,7 @@ import urllib.parse
 from functools import partial
 from queue import Queue
 
-from dcos.errors import DCOSException
+from dcos.errors import MesosException
 from mesos import http
 from mesos import recordio
 from mesos import util
@@ -69,7 +69,7 @@ class Master(object):
     def slave(self, fltr):
         """Returns the slave that has `fltr` in its ID. If any slaves
         are an exact match, returns that task, id not raises a
-        DCOSException if there is not exactly one such slave.
+        MesosException if there is not exactly one such slave.
 
         :param fltr: filter string
         :type fltr: str
@@ -80,7 +80,7 @@ class Master(object):
         slaves = self.slaves(fltr)
 
         if len(slaves) == 0:
-            raise DCOSException('No agent found with ID "{}".'.format(fltr))
+            raise MesosException('No agent found with ID "{}".'.format(fltr))
 
         elif len(slaves) > 1:
 
@@ -90,7 +90,7 @@ class Master(object):
 
             else:
                 matches = ['\t{0}'.format(s['id']) for s in slaves]
-                raise DCOSException(
+                raise MesosException(
                     "There are multiple agents with that ID. " +
                     "Please choose one:\n{}".format('\n'.join(matches)))
 
@@ -98,7 +98,7 @@ class Master(object):
             return slaves[0]
 
     def task(self, fltr, completed=False):
-        """Returns the task with `fltr` in its ID.  Raises a DCOSException if
+        """Returns the task with `fltr` in its ID.  Raises a MesosException if
         there is not exactly one such task.
 
         :param fltr: filter string
@@ -112,14 +112,14 @@ class Master(object):
         tasks = self.tasks(fltr, completed)
 
         if len(tasks) == 0:
-            raise DCOSException(
+            raise MesosException(
                 'Cannot find a task with ID containing "{}"'.format(fltr))
 
         elif len(tasks) > 1:
             msg = [("There are multiple tasks with ID matching [{}]. " +
                     "Please choose one:").format(fltr)]
             msg += ["\t{0}".format(t["id"]) for t in tasks]
-            raise DCOSException('\n'.join(msg))
+            raise MesosException('\n'.join(msg))
 
         else:
             return tasks[0]
@@ -208,7 +208,7 @@ class Master(object):
             if len(candidates) == 1:
                 return candidates[0]
 
-            raise DCOSException(
+            raise MesosException(
                 "More than one task matching '{}' found: {}"
                 .format(task_id, candidates))
 
@@ -218,7 +218,7 @@ class Master(object):
                     if 'container_status' in task['statuses'][0]:
                         return task['statuses'][0]['container_status']
 
-            raise DCOSException(
+            raise MesosException(
                 "Unable to obtain container status for task '{}'"
                 .format(task['id']))
 
@@ -227,13 +227,13 @@ class Master(object):
                 if 'value' in container_status['container_id']:
                     return container_status['container_id']
 
-            raise DCOSException(
+            raise MesosException(
                 "No container found for the specified task."
                 " It might still be spinning up."
                 " Please try again.")
 
         if not task_id:
-            raise DCOSException("Invalid task ID")
+            raise MesosException("Invalid task ID")
 
         task = _get_task(task_id)
         container_status = _get_container_status(task)
@@ -624,7 +624,7 @@ class TaskIO(object):
         if "container" in task_obj.dict():
             if "type" in task_obj.dict()["container"]:
                 if task_obj.dict()["container"]["type"] != "MESOS":
-                    raise DCOSException(
+                    raise MesosException(
                         "This command is only supported for tasks"
                         " launched by the Universal Container Runtime (UCR).")
 
@@ -696,11 +696,11 @@ class TaskIO(object):
 
         # With a TTY.
         if util.is_windows_platform():
-            raise DCOSException(
+            raise MesosException(
                 "Running with the '--tty' flag is not supported on windows.")
 
         if not sys.stdin.isatty():
-            raise DCOSException(
+            raise MesosException(
                 "Must be running in a tty to pass the '--tty flag'.")
 
         fd = sys.stdin.fileno()
@@ -855,7 +855,7 @@ class TaskIO(object):
                     if r.get('type') and r['type'] == 'DATA':
                         self.output_queue.put(r['data'])
         except Exception as e:
-            raise DCOSException(
+            raise MesosException(
                 "Error parsing output stream: {error}".format(error=e))
 
         self.output_queue.join()
@@ -929,7 +929,7 @@ class TaskIO(object):
                 self.agent_url,
                 data=_initial_input_streamer(),
                 **req_extra_args)
-        except DCOSHTTPException as e:
+        except MesosHTTPException as e:
             if not e.response.status_code == 500:
                 raise e
 
@@ -984,7 +984,7 @@ class TaskIO(object):
             # Then write the data to the appropriate stdout or stderr.
             output = self.output_queue.get()
             if not output.get('data'):
-                raise DCOSException("Error no 'data' field in output message")
+                raise MesosException("Error no 'data' field in output message")
 
             data = output['data']
             data = base64.b64decode(data.encode('utf-8'))
@@ -996,7 +996,7 @@ class TaskIO(object):
                 sys.stderr.buffer.write(data)
                 sys.stderr.flush()
             else:
-                raise DCOSException("Unsupported data type in output stream")
+                raise MesosException("Unsupported data type in output stream")
 
             self.output_queue.task_done()
 
