@@ -20,11 +20,11 @@
 
 import abc
 
-class DCOSException(Exception):
+class MesosException(Exception):
     pass
 
 
-class DCOSHTTPException(DCOSException):
+class MesosHTTPException(MesosException):
     """ A wrapper around Response objects for HTTP error codes.
 
     :param response: requests Response object
@@ -43,7 +43,7 @@ class DCOSHTTPException(DCOSException):
             self.response.reason)
 
 
-class DCOSUnprocessableException(DCOSException):
+class MesosUnprocessableException(MesosException):
     """ A wrapper around Response objects for HTTP 422
     error codes, Unprocessable JSON Entities.
 
@@ -63,7 +63,7 @@ class DCOSUnprocessableException(DCOSException):
             self.response.text)
 
 
-class DCOSAuthenticationException(DCOSHTTPException):
+class MesosAuthenticationException(MesosHTTPException):
     """A wrapper around Response objects for HTTP Authentication errors (401).
 
     :param response: requests Response object
@@ -83,7 +83,7 @@ class DCOSAuthenticationException(DCOSHTTPException):
         return self.message
 
 
-class DCOSAuthorizationException(DCOSHTTPException):
+class MesosAuthorizationException(MesosHTTPException):
     """A wrapper around Response objects for HTTP Authorization errors (403).
 
     :param response: requests Response object
@@ -96,7 +96,7 @@ class DCOSAuthorizationException(DCOSHTTPException):
         return "You are not authorized to perform this operation."
 
 
-class DCOSConnectionError(DCOSException):
+class MesosConnectionError(MesosException):
     """An Error object for when a connection attempt fails.
 
     :param url: URL for the Request
@@ -109,7 +109,7 @@ class DCOSConnectionError(DCOSException):
         return 'URL [{0}] is unreachable.'.format(self.url)
 
 
-class DCOSBadRequest(DCOSHTTPException):
+class MesosBadRequest(MesosHTTPException):
     """A wrapper around Response objects for HTTP Bad Request (400).
 
     :param response: requests Response object
