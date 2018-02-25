@@ -74,7 +74,7 @@ class MesosAuthenticationException(MesosHTTPException):
     """
     def __init__(self, response, message=None):
         if message is None:
-            message = "Authentication failed. Please run `dcos auth login`."
+            message = "Authentication failed."
 
         self.response = response
         self.message = message
