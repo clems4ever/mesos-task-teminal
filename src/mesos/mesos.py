@@ -630,6 +630,10 @@ class TaskIO(object):
 
         # Grab a reference to the container ID for the task.
         self.parent_id = master.get_container_id(task_id)
+        if "user" in task_obj.dict():
+          self.user = task_obj.dict()['user']
+        else:
+          self.user = None
 
         # Generate a new UUID for the nested container
         # used to run commands passed to `task exec`.
@@ -800,6 +804,9 @@ class TaskIO(object):
                     'value': self.cmd,
                     'arguments': [self.cmd] + self.args,
                     'shell': False}}}
+        if not self.user is None:
+          message['launch_nested_container_session']['command']['user'] =\
+             self.user
 
         if self.tty:
             message[
