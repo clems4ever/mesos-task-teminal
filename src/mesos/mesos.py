@@ -574,7 +574,7 @@ def get_master_state(master_url):
         """
 
         url = urllib.parse.urljoin(master_url, 'master/state.json')
-        return http.get(url, timeout=10).json()
+        return http.get(url, timeout=30).json()
 
 class TaskIO(object):
     """Object used to stream I/O between a
