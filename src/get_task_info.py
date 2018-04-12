@@ -18,6 +18,7 @@
 import sys
 import argparse
 import os
+import json
 from mesos.mesos import Master, get_master_state
 
 parser = argparse.ArgumentParser(description='Get info about a task.')
@@ -29,4 +30,4 @@ mesos_master_url = os.getenv('MESOS_MASTER_URL', 'http://localhost:5050')
 
 state = get_master_state(mesos_master_url)
 t = Master(state)
-print(t.task(args.task_id).dict())
+print(json.dumps(t.task(args.task_id).dict()))
