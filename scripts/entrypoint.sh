@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python src/app.py $1
+python src/exec.py $1
